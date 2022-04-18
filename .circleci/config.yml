@@ -10,7 +10,7 @@ jobs:
             command: |
               aws cloudformation deploy \
                 --template-file infrastructure/cfn-template.yml \
-                --stack-name myStack-${CIRCLE_WORKFLOW_ID:0:5} \
+                --stack-name my-super-duper-app-${CIRCLE_WORKFLOW_ID:0:5} \
                 --region us-east-1
 workflows:
   myWorkflow:
