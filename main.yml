@@ -13,4 +13,4 @@
   roles:
     - prepare_env
     - install_dependecies
-    - configure_server
+    - setup
