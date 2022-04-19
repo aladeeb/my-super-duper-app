@@ -1,0 +1,25 @@
+- name: "adding nodejs repo"
+  shell: "curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -"
+
+- name: "install node"
+  become: true
+  apt: 
+    name: "nodejs"
+    state: "latest"
+    update_cache: "yes"
+  
+- name: "npm version"
+  shell: "npm -v"
+  register: npm_version
+
+- debug: 
+    var: npm_version.stdout_lines
+
+- name: "install pm2"
+  become: true
+  npm:
+    name: pm2
+    global: yes
+    production: yes
+    state: present
+

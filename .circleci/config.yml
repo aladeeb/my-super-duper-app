@@ -12,7 +12,23 @@ jobs:
                 --template-file cfn-template.yml \
                 --stack-name my-super-duper-app-${CIRCLE_WORKFLOW_ID:0:5} \
                 --region us-east-1
+  configure_infrastructure: 
+    docker:
+      - image: python:3.7-alpine3.11
+    steps:
+      - checkout
+      - add_ssh_keys:
+              fingerprints: ["c4:90:bc:59:1c:6e:e3:7d:d7:8e:d6:a7:f9:af:70:96"] 
+      - run:
+          name: Install Ansible
+          command: |
+            apk add --update ansible
+      - run:
+          name: Run Playbook and Configure server
+          command: |
+            ansible-playbook -i inventory main.yml
 workflows:
   myWorkflow:
     jobs:
-      - create_infrastructure
+      # - create_infrastructure
+      - configure_infrastructure
