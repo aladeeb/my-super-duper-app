@@ -3,11 +3,27 @@
   file: 
     path: "~/web"
     state: directory
+  register: filecreation
+
+- debug: 
+    var: filecreation.stdout_lines
+
 
 - name: "copy index"
   copy:
     src: "index.js"
     dest: "~/web/index.js"
-  
+  register: filecopy
+
+- debug: 
+    var: filecopy.stdout_lines
+
+
 - name: "start the server"
   shell: "pm2 start ~/web/index.js -f"
+  register: pm2start
+
+
+- debug: 
+    var: pm2start.stdout_lines
+
