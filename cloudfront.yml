@@ -24,11 +24,11 @@ Resources:
             QueryString: False
           TargetOriginId: webpage
           ViewerProtocolPolicy: allow-all
-  Outputs:
-    PipelineIDOutput:
-      Value: !Sub ${PipelineID}
-      Export:
-        Name: PipelineID
+Outputs:
+  PipelineID:
+    Value: !Sub ${PipelineID}
+    Export:
+      Name: PipelineID
 
 
 # aws cloudformation deploy --template-file cloudfront.yml --stack-name production-distro --parameter-overrides PipelineID="adeeb-super-dupper" 
