@@ -44,14 +44,14 @@ jobs:
               return 1
             fi
   smoke_test:
-  docker:
-    - image: alpine:latest
-  steps:
-    - run:
-        name: Test job
-        # Fail the job intentionally to simulate an error.
-        command:  return 1
-    - destroy_environment  
+    docker:
+      - image: alpine:latest
+    steps:
+      - run:
+          name: Test job
+          # Fail the job intentionally to simulate an error.
+          command:  return 1
+      - destroy_environment  
   destroy_environment:
     steps:
       - run: 
