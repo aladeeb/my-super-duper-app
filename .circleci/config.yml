@@ -6,8 +6,9 @@ commands:
           name: "destroy environment"
           when: on_fail
           command: |
-            aws cloudformation delete-stack --stack-name my-super-duper-app-${CIRCLE_WORKFLOW_ID:0:5}
+            aws cloudformation delete-stack --stack-name backend-server-${CIRCLE_WORKFLOW_ID:0:7}
 jobs:
+  
   create_infrastructure: 
       docker:
         - image: amazon/aws-cli
@@ -17,10 +18,11 @@ jobs:
             name: Create Cloudformation Stack
             command: |
               aws cloudformation deploy \
-                --template-file cfn-template.yml \
-                --stack-name my-super-duper-app-${CIRCLE_WORKFLOW_ID:0:5} \
+                --template-file backend-server.yml \
+                --stack-name backend-server-${CIRCLE_WORKFLOW_ID:0:7} \
                 --region us-east-1
         - destroy_environment
+  
   configure_infrastructure: 
     docker:
       - image: python:3.7-alpine3.11
@@ -36,6 +38,7 @@ jobs:
           name: Run Playbook and Configure server
           command: |
             ansible-playbook -i inventory main.yml
+  
   smoke_test:
     docker:
       - image: alpine:latest
@@ -49,24 +52,77 @@ jobs:
             # Test if website exists
             if curl -s --head ${URL} 
             then
-              return 0
+              return 1
             else
               return 1
             fi
       - destroy_environment
-  old_smoke_test:
+  
+  create_and_deploy_front_end:
     docker:
       - image: amazon/aws-cli
     steps:
-      - run:
-          name: Test job
-          command:  return 1
-      - destroy_environment  
+      - checkout
+      - run: 
+          command: |
+            aws cloudformation deploy \
+            --template-file bucket.yml \
+            --stack-name stack-create-bucket-${CIRCLE_WORKFLOW_ID:0:7} \
+            --parameter-overrides MyBucketName="mybucket-${CIRCLE_WORKFLOW_ID:0:7}"
+      - run: aws s3 cp index.html s3://mybucket-${CIRCLE_WORKFLOW_ID:0:7}
+  
+  get_last_deployment_id:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum install -y tar gzip
+      - run: 
+          name: "Get old bucket name"
+          command: |
+            aws cloudformation \
+            list-exports --query "Exports[?Name==\`PipelineID\`].Value" \
+            --no-paginate --output text > ~/bucketname.txt
+      - persist_to_workspace:
+          root: ~/
+          paths:
+            - "bucketname.txt"
+  
+  promote_to_production:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: "Execute cloudfront"
+          command: |
+            aws cloudformation deploy \
+            --template-file cloudfront.yml \
+            --stack-name production-distro \
+            --parameter-overrides PipelineID="mybucket-${CIRCLE_WORKFLOW_ID:0:7}"
+
+  clean_up_old_front_end:
+    docker:
+      - image: amazon/aws-cli
+      steps:
+        - checkout
+        - run: yum install -y tar gzip
+        - attach_workspace:
+            at: ~/
+        - run: 
+            name: "Remove the old bucket and its stack"
+            command: |
+              export oldBucketName=$(cat ~/bucketname.txt)
+              aws s3 rm "s3://${oldBucketName}" --recursive
+
 workflows:
   myWorkflow:
     jobs:
-      - create_infrastructure
-      # - configure_infrastructure
-      - smoke_test: 
+      - create_and_deploy_front_end
+      - promote_to_production:
           requires:
-            - create_infrastructure
+            - create_and_deploy_front_end
+      - get_last_deployment_id
+      - clean_up_old_front_end:
+          requires:
+            - get_last_deployment_id
+            - promote_to_production
