@@ -104,16 +104,16 @@ jobs:
   clean_up_old_front_end:
     docker:
       - image: amazon/aws-cli
-      steps:
-        - checkout
-        - run: yum install -y tar gzip
-        - attach_workspace:
-            at: ~/
-        - run: 
-            name: "Remove the old bucket and its stack"
-            command: |
-              export oldBucketName=$(cat ~/bucketname.txt)
-              aws s3 rm "s3://${oldBucketName}" --recursive
+    steps:
+      - checkout
+      - run: yum install -y tar gzip
+      - attach_workspace:
+          at: ~/
+      - run: 
+          name: "Remove the old bucket and its stack"
+          command: |
+            export oldBucketName=$(cat ~/bucketname.txt)
+            aws s3 rm "s3://${oldBucketName}" --recursive
 
 workflows:
   myWorkflow:
