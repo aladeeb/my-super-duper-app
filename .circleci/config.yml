@@ -20,6 +20,7 @@ jobs:
                 --template-file cfn-template.yml \
                 --stack-name my-super-duper-app-${CIRCLE_WORKFLOW_ID:0:5} \
                 --region us-east-1
+        - destroy_environment
   configure_infrastructure: 
     docker:
       - image: python:3.7-alpine3.11
@@ -35,9 +36,9 @@ jobs:
           name: Run Playbook and Configure server
           command: |
             ansible-playbook -i inventory main.yml
-  old_smoke_test:
+  smoke_test:
     docker:
-      - image: alpine:latest
+      - image: amazon/aws-cli
     steps:
       - run: apk add --update curl
       - run:
@@ -51,13 +52,13 @@ jobs:
             else
               return 1
             fi
-  smoke_test:
+      - destroy_environment
+  old_smoke_test:
     docker:
       - image: amazon/aws-cli
     steps:
       - run:
           name: Test job
-          # Fail the job intentionally to simulate an error.
           command:  return 1
       - destroy_environment  
 workflows:
