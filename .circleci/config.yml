@@ -53,6 +53,8 @@ jobs:
           command:  return 1
       - destroy_environment  
   destroy_environment:
+    docker:
+      - image: alpine:latest
     steps:
       - run: 
           name: "destroy environment"
