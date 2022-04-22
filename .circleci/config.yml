@@ -41,6 +41,7 @@ jobs:
       - image: alpine:latest
     steps:
       - run: apk add --update curl
+      - run: apt-get update && apt-get install -y awscli
       - run:
           name: smoke test
           command: |
