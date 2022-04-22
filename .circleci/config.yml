@@ -43,15 +43,6 @@ jobs:
             else
               return 1
             fi
-  smoke_test:
-    docker:
-      - image: alpine:latest
-    steps:
-      - run:
-          name: Test job
-          # Fail the job intentionally to simulate an error.
-          command:  return 1
-      - destroy_environment  
   destroy_environment:
     docker:
       - image: alpine:latest
@@ -61,6 +52,15 @@ jobs:
           when: on_fail
           command: |
             aws cloudformation delete-stack --stack-name my-super-duper-app-${CIRCLE_WORKFLOW_ID:0:7}
+  smoke_test:
+    docker:
+      - image: alpine:latest
+    steps:
+      - run:
+          name: Test job
+          # Fail the job intentionally to simulate an error.
+          command:  return 1
+      - destroy_environment  
 workflows:
   myWorkflow:
     jobs:
