@@ -93,7 +93,8 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      - run: "Execute cloudfront"
+      - run: 
+          name: "Execute cloudfront"
           command: |
             aws cloudformation deploy \
             --template-file cloudfront.yml \
